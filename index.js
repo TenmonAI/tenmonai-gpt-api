@@ -7,7 +7,6 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// API Key
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
@@ -37,18 +36,18 @@ app.post("/diagnose", async (req, res) => {
 `;
 
   try {
-    const completion = await client.chat.completions.create({
-      model: "gpt-5.1",
-      messages: [{ role: "user", content: prompt }],
 
-      // ★ 注意：GPT-5以降は max_completion_tokens 使用
-      max_completion_tokens: 2048,
+    // ★★★ responses API（GPT-5.1 完全対応） ★★★
+    const response = await client.responses.create({
+      model: "gpt-5.1",
+      input: prompt,
+      max_output_tokens: 2000,   // ←正しいパラメータ
       temperature: 0.8
     });
 
-    res.json({
-      result: completion.choices[0].message.content
-    });
+    const resultText = response.output_text;  // ← 最新仕様のテキスト抽出
+
+    res.json({ result: resultText });
 
   } catch (error) {
     console.error("GPT ERROR:", error);
@@ -58,11 +57,11 @@ app.post("/diagnose", async (req, res) => {
   }
 });
 
+// 動作確認用
 app.get("/", (req, res) => {
   res.send("TenmonAI API is running.");
 });
 
-// ★ Render が必須とする PORT 指定
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`TenmonAI API running on port ${PORT}`);
