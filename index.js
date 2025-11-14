@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// ★ APIキーは Render の Environment Variables に OPENAI_API_KEY として設定
+// API Key
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
@@ -41,9 +41,8 @@ app.post("/diagnose", async (req, res) => {
       model: "gpt-5.1",
       messages: [{ role: "user", content: prompt }],
 
-      // ★★ 新仕様：max_tokens → max_completion_tokens ★★
+      // ★ 注意：GPT-5以降は max_completion_tokens 使用
       max_completion_tokens: 2048,
-
       temperature: 0.8
     });
 
@@ -59,12 +58,11 @@ app.post("/diagnose", async (req, res) => {
   }
 });
 
-// 動作確認用
 app.get("/", (req, res) => {
   res.send("TenmonAI API is running.");
 });
 
-// Render 必須：process.env.PORT を使用
+// ★ Render が必須とする PORT 指定
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`TenmonAI API running on port ${PORT}`);
